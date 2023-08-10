@@ -268,7 +268,7 @@ def align_pos_to_visits(Fs, visits, datepath, phot_dlc='n',
         dlc_pos = pd.read_hdf(datepath + dlc_pos_file).DLC_resnet50_Triangle_Maze_Phot_RobustJun8shuffle1_350000
     else:
         dlc_pos_file = 'Behav_Vid0DLC_resnet50_Triangle_Maze_EphysDec7shuffle1_800000.h5'
-        pos_col = 'cap_front' if use_centroid else 'cap_back'
+        pos_col = 'cap_back'#'cap_front' if use_centroid else 'cap_back'
         dlc_pos = pd.read_hdf(datepath + dlc_pos_file).DLC_resnet50_Triangle_Maze_EphysDec7shuffle1_800000
     pos = dlc_pos[pos_col][['x', 'y']].copy()
     pos.loc[dlc_pos[pos_col].likelihood < cutoff, ['x', 'y']] = np.nan
@@ -289,12 +289,13 @@ def align_pos_to_visits(Fs, visits, datepath, phot_dlc='n',
     framestamps.append((frametimes[inds]-porttimes[-1])*(Fs/1000) + visits[-1])
     framestamps = np.concatenate(framestamps).astype(int)
 
-    #TODO ADD IN CODE TO REMOVE ABERRANT JUMPS AND THEN FILL IN MISSING GAPS
+    ##TODO ADD IN CODE TO REMOVE ABERRANT JUMPS AND THEN FILL IN MISSING GAPS
     pixelJumpCutoff = 30 * pixelsPerCm
     pos.loc[:,['x','y']] = remove_aberrant_jumps(position_data=pos.loc[:,['x','y']].values,\
         max_jump_distance=pixelJumpCutoff)
     pos.loc[:,['x','y']] = fill_missing_gaps(pos.loc[:,['x','y']].values)
     pos.loc[:,['x','y']] = smooth_position_data(pos.loc[:,['x','y']].values,window_size=3)
+
     # Smooth with gaussian kernel
     #if gaus_smooth:
     #    pos = gaussian_filter(pos, sigma=(0, sigma))
