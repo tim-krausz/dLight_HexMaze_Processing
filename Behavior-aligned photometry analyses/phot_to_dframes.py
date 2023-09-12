@@ -86,7 +86,7 @@ ardstamps = np.round(ardtimes*(Fs/1000)).astype(int)
 #    vis4pos = visits
 vis4pos = visits
 x,y,vel,framestamps,acc,dlc_pos = align_pos_to_visits(Fs,vis4pos,datepath,
-    phot_dlc=phot_dlc,filecount=filecount,gaus_smooth=usePosSmoothing,sigma=gausSigma)
+    phot_dlc=phot_dlc,filecount=filecount,gaus_smooth=usePosSmoothing,sigma=gausSigma,cutoff=0.4)
 
 plt.figure()
 plt.plot(framestamps)

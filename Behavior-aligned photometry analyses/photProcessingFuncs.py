@@ -151,8 +151,8 @@ def get_port_times(ardtext,ardtimes):
 
 def calculate_velocity(x, y, fps, unit_conversion=1):
     # Convert pixels to cm if required
-    x = x * unit_conversion
-    y = y * unit_conversion
+    x = x * 1/unit_conversion
+    y = y * 1/unit_conversion
     
     # Calculate distance
     dx = np.diff(x)
@@ -250,6 +250,27 @@ def smooth_position_data(position_data, window_size=5):
     
     return np.array([x_smoothed, y_smoothed]).T
 
+def detect_and_replace_jumps(coordinates, threshold):
+    n = len(coordinates)
+    jumps = []
+    
+    # Calculate Euclidean distances between consecutive points
+    distances = np.linalg.norm(coordinates[1:] - coordinates[:-1], axis=1)
+    
+    # Find positions where the distance exceeds the threshold
+    jump_indices = np.where(distances > threshold)[0] + 1
+    
+    # Mark all points within the jump range
+    for idx in jump_indices:
+        start = max(0, idx - 1)
+        end = min(n, idx + 2)
+        jumps.extend(range(start, end))
+    
+    # Replace points belonging to jumps with NaN
+    coordinates[jumps] = np.nan
+    
+    return coordinates
+
 def align_pos_to_visits(Fs, visits, datepath, phot_dlc='n',
                         filecount="0", gaus_smooth=True, 
                         sigma=0.01, cutoff=0.9, use_centroid=False,
@@ -291,10 +312,17 @@ def align_pos_to_visits(Fs, visits, datepath, phot_dlc='n',
 
     ##TODO ADD IN CODE TO REMOVE ABERRANT JUMPS AND THEN FILL IN MISSING GAPS
     pixelJumpCutoff = 30 * pixelsPerCm
-    pos.loc[:,['x','y']] = remove_aberrant_jumps(position_data=pos.loc[:,['x','y']].values,\
-        max_jump_distance=pixelJumpCutoff)
+    #pos.loc[:,['x','y']] = remove_aberrant_jumps(position_data=pos.loc[:,['x','y']].values,\
+    #    max_jump_distance=pixelJumpCutoff)
+    #pos.loc[:,['x','y']] = detect_and_replace_jumps(pos.loc[:,['x','y']].values,pixelJumpCutoff)
+    pos.loc[pos.x.notnull(),['x','y']] = detect_and_replace_jumps(
+        pos.loc[pos.x.notnull(),['x','y']].values,pixelJumpCutoff)
+    #pos.loc[:,['x','y']] = fill_missing_gaps(pos.loc[:,['x','y']].values)
+    pos.loc[pos.x.notnull(),['x','y']] = detect_and_replace_jumps(
+        pos.loc[pos.x.notnull(),['x','y']].values,pixelJumpCutoff)
     pos.loc[:,['x','y']] = fill_missing_gaps(pos.loc[:,['x','y']].values)
-    pos.loc[:,['x','y']] = smooth_position_data(pos.loc[:,['x','y']].values,window_size=3)
+    #pos.loc[:,['x','y']] = gaussian_filter(pos.loc[:,['x','y']].values, sigma=.15, mode='constant')
+    #pos.loc[:,['x','y']] = smooth_position_data(pos.loc[:,['x','y']].values,window_size=3)
 
     # Smooth with gaussian kernel
     #if gaus_smooth:
