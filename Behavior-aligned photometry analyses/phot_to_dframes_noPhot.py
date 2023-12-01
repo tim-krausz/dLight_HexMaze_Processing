@@ -31,9 +31,10 @@ VizGetter = process_ephys_visitData.EphysVisitGetter(animal,date,rec_folder,ephy
 VizGetter.prepData()
 n_seconds = VizGetter.getSeshDurationInS()
 # fill in nansig with nan vector of length Fs*n_seconds
-nansig = np.full(int(Fs*n_seconds),np.nan)
+nansig = np.full(int(Fs*(n_seconds+10)),np.nan)
 #need to get visits from ephys data. should be 
 visits = VizGetter.get_visit_times()
+visits = visits[1:] - visits[0]
 visits = np.unique(visits)
 print(visits.astype(int))
 
@@ -44,10 +45,6 @@ visits = visits[shiftVisByN:]
 #get sample numbers of visit indices
 visits = np.divide(visits,ephysSR/Fs)
 visits = visits.astype(int)
-
-
-dff1,ref = processAndPlotSigsWairPLS(sigs,datepath,smooth_win=int(Fs/30),lambd=1e8)
-
 
 
 #import arduino behavioral data and their timestamps
@@ -79,7 +76,9 @@ plt.title("camera frame stamps in photometry sample time")
 
 #Make dataframe with all data organized by sample number
 visits = np.unique(visits)
-a = np.tile(0,(len(dff1),22))
+
+#This is where the problem is... not the right length.
+a = np.tile(0,(len(nansig),22))
 data = np.full_like(a, np.nan, dtype=np.double) #make a sample number x variable number array of nans
 #fill in nans with behavioral data. columns = x,y,ach,dlight,port,rwd,roi
 #give signal columns dff values
@@ -204,7 +203,7 @@ sampledata['green_z_scored'] = zscored
 #sampledata['red_z_scored'] = zscored
 
 #add column indicating recording location
-sampledata['fiberloc'] = location
+sampledata['fiberloc'] = np.nan
 
 #create list of repeating session type string for addition to data frame
 sampledata['session_type']=ses_type
