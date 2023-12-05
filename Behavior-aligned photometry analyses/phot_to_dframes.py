@@ -14,6 +14,8 @@ from matplotlib.lines import Line2D
 from TriFuncs import * #custom functions for following analysis
 #get_ipython().run_line_magic('matplotlib', '')
 
+#TODO: define pixPerCm in main jupyter notebook  before running phot_to_drames
+
 #get variables from main script
 from __main__ import *
 
@@ -86,7 +88,8 @@ ardstamps = np.round(ardtimes*(Fs/1000)).astype(int)
 #    vis4pos = visits
 vis4pos = visits
 x,y,vel,framestamps,acc,dlc_pos = align_pos_to_visits(Fs,vis4pos,datepath,
-    phot_dlc=phot_dlc,filecount=filecount,gaus_smooth=usePosSmoothing,sigma=gausSigma,cutoff=0.4)
+    phot_dlc=phot_dlc,filecount=filecount,gaus_smooth=usePosSmoothing,
+    sigma=gausSigma,cutoff=0.4,pixelsPerCm=pixPerCm)
 
 plt.figure()
 plt.plot(framestamps)
